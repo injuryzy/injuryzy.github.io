@@ -804,7 +804,196 @@ $ vi themes/zafta/layouts/_default/single.html
 </code></pre><p>Note that we removed the date logic from the default template and put it in the post template. Generate the web site and verify the results. Posts have dates and the about page doesn&rsquo;t.</p>
 <h3 id="dont-repeat-yourself">Don&rsquo;t Repeat Yourself</h3>
 <p>DRY is a good design goal and Hugo does a great job supporting it. Part of the art of a good template is knowing when to add a new template and when to update an existing one. While you&rsquo;re figuring that out, accept that you&rsquo;ll be doing some refactoring. Hugo makes that easy and fast, so it&rsquo;s okay to delay splitting up a template.</p>
-]]></content></item><item><title>Création d'un nouveau thème</title><link>/posts/2014/09/cr%C3%A9ation-dun-nouveau-th%C3%A8me/</link><pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate><guid>/posts/2014/09/cr%C3%A9ation-dun-nouveau-th%C3%A8me/</guid><description>Introduction Ce tutoriel vous montrera comment créer un thème simple pour Hugo. Je suppose que vous êtes familier avec HTML, la ligne de commande bash, et que vous êtes à l&amp;rsquo;aise avec Markdown pour formater le contenu. Je vais expliquer comment Hugo utilise des modèles et comment vous pouvez organiser vos modèles pour créer un thème. Je ne couvrirai pas l&amp;rsquo;utilisation de CSS pour styliser votre thème.
+]]></content></item><item><title>go_zero的API签名验证</title><link>/posts/2024/06/go_zero%E7%9A%84api%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81/</link><pubDate>Tue, 04 Jun 2024 10:03:42 +0800</pubDate><guid>/posts/2024/06/go_zero%E7%9A%84api%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81/</guid><description>背景 最近在使用go_zero框架的时候，想给api加一个签名，但是搜索了一下，没有发现很完整的教程，所以在这里记录一下。最开始通过一些博客加了一下签名，在框架验签的时候，发现签名失败，所以我们从验签开始往回推。
+go_zero验签 我们从这两个方法讲起来
+ParseContentSecurity func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Request) ( *ContentSecurityHeader, error) { // 获取请求头中的X-Content-Security字段 contentSecurity := r.Header.Get(httpx.ContentSecurity) //X-Content-Security attrs := httpx.ParseHeader(contentSecurity) // 获取请求头中的X-Content-Security字段中的key、secret、signature字段 fingerprint := attrs[httpx.KeyField] //&amp;#34;key&amp;#34; secret := attrs[httpx.SecretField] //&amp;#34;secret&amp;#34; signature := attrs[signatureField] //&amp;#34;signatur&amp;#34; if len(fingerprint) == 0 || len(secret) == 0 || len(signature) == 0 { return nil, ErrInvalidHeader } decrypter, ok := decrypters[fingerprint] if !ok { return nil, ErrInvalidPublicKey } // 解密secret decryptedSecret, err := decrypter.</description><content type="html"><![CDATA[<h3 id="背景">背景</h3>
+<p>最近在使用go_zero框架的时候，想给api加一个签名，但是搜索了一下，没有发现很完整的教程，所以在这里记录一下。最开始通过一些博客加了一下签名，在框架验签的时候，发现签名失败，所以我们从验签开始往回推。</p>
+<h3 id="go_zero验签">go_zero验签</h3>
+<p><img src="/images/go_zero%E7%9A%84API%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81.png" alt="go_zero的API签名验证.png"></p>
+<p>我们从这两个方法讲起来</p>
+<ol>
+<li><code>ParseContentSecurity</code></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ParseContentSecurity</span>(<span style="color:#a6e22e">decrypters</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">RsaDecrypter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (
+</span></span><span style="display:flex;"><span>	<span style="color:#f92672">*</span><span style="color:#a6e22e">ContentSecurityHeader</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 获取请求头中的X-Content-Security字段
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">contentSecurity</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">ContentSecurity</span>) <span style="color:#75715e">//X-Content-Security
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">attrs</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">ParseHeader</span>(<span style="color:#a6e22e">contentSecurity</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 获取请求头中的X-Content-Security字段中的key、secret、signature字段
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fingerprint</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">attrs</span>[<span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">KeyField</span>] <span style="color:#75715e">//&#34;key&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">secret</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">attrs</span>[<span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">SecretField</span>]   <span style="color:#75715e">//&#34;secret&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">signature</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">attrs</span>[<span style="color:#a6e22e">signatureField</span>] <span style="color:#75715e">//&#34;signatur&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">fingerprint</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> len(<span style="color:#a6e22e">secret</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> len(<span style="color:#a6e22e">signature</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">ErrInvalidHeader</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">decrypter</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">decrypters</span>[<span style="color:#a6e22e">fingerprint</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">ErrInvalidPublicKey</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 解密secret
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">decryptedSecret</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">decrypter</span>.<span style="color:#a6e22e">DecryptBase64</span>(<span style="color:#a6e22e">secret</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">ErrInvalidSecret</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//在secret中获取时间戳和类型和key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">attrs</span> = <span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">ParseHeader</span>(string(<span style="color:#a6e22e">decryptedSecret</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">base64Key</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">attrs</span>[<span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">KeyField</span>] <span style="color:#75715e">//key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">timestamp</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">attrs</span>[<span style="color:#a6e22e">timeField</span>]      <span style="color:#75715e">//时间戳
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">contentType</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">attrs</span>[<span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">TypeField</span>] <span style="color:#75715e">//类型
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 使用base64解密，在使用私钥解密
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">base64Key</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">ErrInvalidKey</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">cType</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">contentType</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">ErrInvalidContentType</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ContentSecurityHeader</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Key</span>:         <span style="color:#a6e22e">key</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Timestamp</span>:   <span style="color:#a6e22e">timestamp</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ContentType</span>: <span style="color:#a6e22e">cType</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Signature</span>:   <span style="color:#a6e22e">signature</span>,
+</span></span><span style="display:flex;"><span>	}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在这个方法里面我们可以看到，header里面的参数,这里是分号结尾，可以在<code>ParseHeader</code>方法里面看到</p>
+<ul>
+<li>X-Content-Security: key=xxx;secret=xxx;signature=xxx</li>
+<li>使用base64解密，在使用私钥解密secret,已经获取到了type,time,加密的key ,再通过base64解密获取key的值</li>
+</ul>
+<ol start="2">
+<li><code>VerifySignature</code> 验签方法</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">VerifySignature</span>(<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#a6e22e">securityHeader</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ContentSecurityHeader</span>, <span style="color:#a6e22e">tolerance</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>) <span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">seconds</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">ParseInt</span>(<span style="color:#a6e22e">securityHeader</span>.<span style="color:#a6e22e">Timestamp</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">64</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">CodeSignatureInvalidHeader</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">now</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">toleranceSeconds</span> <span style="color:#f92672">:=</span> int64(<span style="color:#a6e22e">tolerance</span>.<span style="color:#a6e22e">Seconds</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">seconds</span><span style="color:#f92672">+</span><span style="color:#a6e22e">toleranceSeconds</span> &lt; <span style="color:#a6e22e">now</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">now</span><span style="color:#f92672">+</span><span style="color:#a6e22e">toleranceSeconds</span> &lt; <span style="color:#a6e22e">seconds</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">CodeSignatureWrongTime</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">reqPath</span>, <span style="color:#a6e22e">reqQuery</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">getPathQuery</span>(<span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">signContent</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Join</span>([]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//时间戳
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">securityHeader</span>.<span style="color:#a6e22e">Timestamp</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//请求方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Method</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//请求路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">reqPath</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//请求参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">reqQuery</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//使用散列算法生成body的hash值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">computeBodySignature</span>(<span style="color:#a6e22e">r</span>),
+</span></span><span style="display:flex;"><span>	}, <span style="color:#e6db74">&#34;\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//使用进行sha256加密，在用base64加密
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">actualSignature</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">HmacBase64</span>(<span style="color:#a6e22e">securityHeader</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#a6e22e">signContent</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//生成的签名和原始签名对比
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">securityHeader</span>.<span style="color:#a6e22e">Signature</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">actualSignature</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">CodeSignaturePass</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logx</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;signature different, expect: %s, actual: %s&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">securityHeader</span>.<span style="color:#a6e22e">Signature</span>, <span style="color:#a6e22e">actualSignature</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">httpx</span>.<span style="color:#a6e22e">CodeSignatureInvalidToken</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li>加密的内容
+<ul>
+<li>时间戳</li>
+<li>请求方法</li>
+<li>请求路径</li>
+<li>请求参数</li>
+<li>请求体hash值</li>
+</ul>
+</li>
+<li>对内容进行sha256.New(key) 加密，在用base64加密</li>
+</ul>
+<h3 id="签名算法">签名算法</h3>
+<p>请参考这篇文章</p>
+<ul>
+<li><a href="http://www.jikejiaocheng.com/c/gozero-restdocverificationmiddlewaresignature.html">go-zero-api-signature</a></li>
+</ul>
+<h3 id="签名请求案例">签名请求案例</h3>
+<p>配置文件</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">Signature</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">Strict</span>: <span style="color:#66d9ef">true</span>                   <span style="color:#75715e"># 是否开启校验，调试的时候可以关掉，默认是关闭</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">Expiry</span>: <span style="color:#ae81ff">24h                                        </span> <span style="color:#75715e"># 签名字段的过期时间，默认 1 h</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">PrivateKeys</span>: <span style="color:#75715e"># 密钥以及指纹，密钥是上面 RSA 文件位置，指纹自定义，可以多组</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">Fingerprint</span>: <span style="color:#e6db74">&#34;aabb&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">KeyFile</span>: <span style="color:#ae81ff">E:\go_project\ai_headset_api\etc\private.pem</span>
+</span></span></code></pre></div><p>请求</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">UpdateTodoAlarmReq</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Id</span>          <span style="color:#66d9ef">int64</span> <span style="color:#e6db74">`json:&#34;id&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">AlarmStatus</span> <span style="color:#66d9ef">int</span>   <span style="color:#e6db74">`json:&#34;alarmStatus&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestRequest</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">key1</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;aabb&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">pub_key</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzCbcSJ2Wo5QGmTEpBkKI\nb6lqjRpmSbOfNIYsT/J3u9t4PbCcWYDRyoybuOlWbYQqpzdEvnMm8bCO1m2vUmPL\n6gUVi6uz3RTn+yOQEhRFqu5YFzvPqrSl0SYOwP1NdSzO9te1Kb2DtmlLQExbhan2\n4jcwIjwSogtpoC6ymVYzHjGDare6j5cMqBDGewHwUU2p6yxOkwbLn0ZLVYGBWolQ\nzc8hV3BK01ENnimDhkRFpxs2HDEQlBKfDpqo77JKyzvUnYmSu/xN8vcNqzHb5Ral\nKI8Xep8caRh5+l1ah78nGdvvJ1YX1FEjctGm8iMNI12rw79agdFYJIPoBFvPreUJ\nwQIDAQAB\n-----END RSA PUBLIC KEY-----\n&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">now</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">req</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">UpdateTodoAlarmReq</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Id</span>:          <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">AlarmStatus</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">marshal</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">request</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#e6db74">&#34;PUT&#34;</span>, <span style="color:#e6db74">&#34;http://127.0.0.1:8888/v1/update_todo_alarm&#34;</span>, <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">marshal</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Type&#34;</span>, <span style="color:#e6db74">&#34;application/json&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Authorization&#34;</span>, <span style="color:#e6db74">&#34;Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc0Mzg1MzcsImlhdCI6MTcxNzQwMjUzNywidWlkIjoxfQ.dPL3JkQdIMr183cOZ2o6BAcZYm53GJnwIRgAvCoKTeg&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">content</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Join</span>([]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;type=%d&#34;</span>, <span style="color:#ae81ff">0</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;key=%s&#34;</span>, <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>([]byte(<span style="color:#a6e22e">key1</span>))), <span style="color:#75715e">//对私钥密码做base64加密
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;time=%s&#34;</span>, <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">FormatInt</span>(<span style="color:#a6e22e">now</span>, <span style="color:#ae81ff">10</span>)),
+</span></span><span style="display:flex;"><span>	}, <span style="color:#e6db74">&#34;; &#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//用公钥对所得字符串进行rsa加密取base64值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">encrypter</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">NewRsaEncrypter</span>([]byte(<span style="color:#a6e22e">pub_key</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">output</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">encrypter</span>.<span style="color:#a6e22e">Encrypt</span>([]byte(<span style="color:#a6e22e">content</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">secret</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">output</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">str</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Join</span>([]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">FormatInt</span>(<span style="color:#a6e22e">now</span>, <span style="color:#ae81ff">10</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">Method</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">computeBodySignature</span>(string(<span style="color:#a6e22e">marshal</span>)),
+</span></span><span style="display:flex;"><span>	}, <span style="color:#e6db74">&#34;\n&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">str</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#e6db74">&#34;body hash: &#34;</span>, <span style="color:#a6e22e">computeBodySignature</span>(string(<span style="color:#a6e22e">marshal</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;X-Content-Security&#34;</span>, <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Join</span>([]<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;key=%s&#34;</span>, <span style="color:#a6e22e">key1</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;secret=%s&#34;</span>, <span style="color:#a6e22e">secret</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;signature=%s&#34;</span>, <span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">HmacBase64</span>([]byte(<span style="color:#a6e22e">key1</span>), <span style="color:#a6e22e">str</span>)),
+</span></span><span style="display:flex;"><span>	}, <span style="color:#e6db74">&#34;; &#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#e6db74">&#34;Hmacse64: &#34;</span>, <span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">HmacBase64</span>([]byte(<span style="color:#a6e22e">key1</span>), <span style="color:#a6e22e">str</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">do</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">request</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">do</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">computeBodySignature</span>(<span style="color:#a6e22e">body</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">sha</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sha256</span>.<span style="color:#a6e22e">New</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">sha</span>, <span style="color:#a6e22e">body</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%x&#34;</span>, <span style="color:#a6e22e">sha</span>.<span style="color:#a6e22e">Sum</span>(<span style="color:#66d9ef">nil</span>))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>]]></content></item><item><title>Création d'un nouveau thème</title><link>/posts/2014/09/cr%C3%A9ation-dun-nouveau-th%C3%A8me/</link><pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate><guid>/posts/2014/09/cr%C3%A9ation-dun-nouveau-th%C3%A8me/</guid><description>Introduction Ce tutoriel vous montrera comment créer un thème simple pour Hugo. Je suppose que vous êtes familier avec HTML, la ligne de commande bash, et que vous êtes à l&amp;rsquo;aise avec Markdown pour formater le contenu. Je vais expliquer comment Hugo utilise des modèles et comment vous pouvez organiser vos modèles pour créer un thème. Je ne couvrirai pas l&amp;rsquo;utilisation de CSS pour styliser votre thème.
 Nous allons commencer par créer un nouveau site avec un modèle très basique.</description><content type="html"><![CDATA[<h2 id="introduction">Introduction</h2>
 <p>Ce tutoriel vous montrera comment créer un thème simple pour Hugo. Je suppose que vous êtes familier avec HTML, la ligne de commande bash, et que vous êtes à l&rsquo;aise avec Markdown pour formater le contenu. Je vais expliquer comment Hugo utilise des modèles et comment vous pouvez organiser vos modèles pour créer un thème. Je ne couvrirai pas l&rsquo;utilisation de CSS pour styliser votre thème.</p>
 <p>Nous allons commencer par créer un nouveau site avec un modèle très basique. Ensuite, nous ajouterons quelques pages et des publications. Avec de petites variations, vous pourrez créer de nombreux types de sites web.</p>

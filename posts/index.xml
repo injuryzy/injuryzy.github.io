@@ -1,4 +1,4 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on injuryzy 的博客</title><link>/posts/</link><description>Recent content in Posts on injuryzy 的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 04 Jun 2024 10:03:42 +0800</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Creating a New Theme</title><link>/posts/2014/09/creating-a-new-theme/</link><pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate><guid>/posts/2014/09/creating-a-new-theme/</guid><description>Introduction This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&amp;rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&amp;rsquo;t cover using CSS to style your theme.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on injuryzy 的博客</title><link>/posts/</link><description>Recent content in Posts on injuryzy 的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Wed, 19 Jun 2024 11:26:12 +0800</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Creating a New Theme</title><link>/posts/2014/09/creating-a-new-theme/</link><pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate><guid>/posts/2014/09/creating-a-new-theme/</guid><description>Introduction This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&amp;rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&amp;rsquo;t cover using CSS to style your theme.
 We&amp;rsquo;ll start with creating a new site with a very basic template.</description><content type="html"><![CDATA[<h2 id="introduction">Introduction</h2>
 <p>This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&rsquo;t cover using CSS to style your theme.</p>
 <p>We&rsquo;ll start with creating a new site with a very basic template. Then we&rsquo;ll add in a few pages and posts. With small variations on that, you will be able to create many different types of web sites.</p>
@@ -804,6 +804,32 @@ $ vi themes/zafta/layouts/_default/single.html
 </code></pre><p>Note that we removed the date logic from the default template and put it in the post template. Generate the web site and verify the results. Posts have dates and the about page doesn&rsquo;t.</p>
 <h3 id="dont-repeat-yourself">Don&rsquo;t Repeat Yourself</h3>
 <p>DRY is a good design goal and Hugo does a great job supporting it. Part of the art of a good template is knowing when to add a new template and when to update an existing one. While you&rsquo;re figuring that out, accept that you&rsquo;ll be doing some refactoring. Hugo makes that easy and fast, so it&rsquo;s okay to delay splitting up a template.</p>
+]]></content></item><item><title>OSS客户端STS上传</title><link>/posts/2024/06/oss%E5%AE%A2%E6%88%B7%E7%AB%AFsts%E4%B8%8A%E4%BC%A0/</link><pubDate>Wed, 19 Jun 2024 11:26:12 +0800</pubDate><guid>/posts/2024/06/oss%E5%AE%A2%E6%88%B7%E7%AB%AFsts%E4%B8%8A%E4%BC%A0/</guid><description>我们为什么要使用客户端上传 阿里云官方给出的解释:
+在典型的服务端和客户端架构下，常见的文件上传方式是服务端代理上传：客户端将文件上传到业务服务器，然后业务服务器将文件上传到OSS。在这个过程中，一份数据需要在网络上传输两次，会造成网络资源的浪费，增加服务端的资源开销。为了解决这一问题，您可以在客户端直连OSS来完成文件上传，无需经过业务服务器中转。 客户端上传的原理 注意事项
+由于客户端上传是post请求,在oss控制台里面的跨域设置里面要把post方法加入
+代码案例，点击跳转
+上传回调 在传中我们需要完成上传后告知服务器，需要设置一个函数给，请求告知服务器
+流程介绍 实例代码 代码案例</description><content type="html"><![CDATA[<h2 id="我们为什么要使用客户端上传">我们为什么要使用客户端上传</h2>
+<p>阿里云官方给出的解释:</p>
+<p><code>在典型的服务端和客户端架构下，常见的文件上传方式是服务端代理上传：客户端将文件上传到业务服务器，然后业务服务器将文件上传到OSS。在这个过程中，一份数据需要在网络上传输两次，会造成网络资源的浪费，增加服务端的资源开销。为了解决这一问题，您可以在客户端直连OSS来完成文件上传，无需经过业务服务器中转。</code><!-- raw HTML omitted -->
+<img src="/images/oss%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8A%E4%BC%A0.png" alt="oss客户端上传.png"></p>
+<h2 id="客户端上传的原理">客户端上传的原理</h2>
+<p><img src="/images/%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8A%E4%BC%A0%E5%8E%9F%E7%90%86.png" alt="客户端上传原理.png"></p>
+<p><strong>注意事项</strong></p>
+<ul>
+<li>
+<p>由于客户端上传是post请求,在oss控制台里面的跨域设置里面要把post方法加入</p>
+</li>
+<li>
+<p><strong><a href="https://help.aliyun.com/zh/oss/use-cases/uploading-objects-to-oss-directly-from-clients/?spm=a2c4g.11186623.0.0.10b67f4cnDKyGp#0ab4e52031nyo">代码案例，点击跳转</a></strong></p>
+</li>
+</ul>
+<h2 id="上传回调">上传回调</h2>
+<p>在传中我们需要完成上传后告知服务器，需要设置一个函数给，请求告知服务器</p>
+<h4 id="流程介绍">流程介绍</h4>
+<p><img src="/images/oss_calback%E5%9B%9E%E8%B0%83.png" alt="oss_calback回调.png"></p>
+<h4 id="实例代码">实例代码</h4>
+<p><strong><a href="https://help.aliyun.com/zh/oss/use-cases/overview-20?spm=a2c4g.11186623.0.0.7ea65feb12Nkld">代码案例</a></strong></p>
 ]]></content></item><item><title>go_zero的API签名验证</title><link>/posts/2024/06/go_zero%E7%9A%84api%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81/</link><pubDate>Tue, 04 Jun 2024 10:03:42 +0800</pubDate><guid>/posts/2024/06/go_zero%E7%9A%84api%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81/</guid><description>背景 最近在使用go_zero框架的时候，想给api加一个签名，但是搜索了一下，没有发现很完整的教程，所以在这里记录一下。最开始通过一些博客加了一下签名，在框架验签的时候，发现签名失败，所以我们从验签开始往回推。
 go_zero验签 我们从这两个方法讲起来
 ParseContentSecurity func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Request) ( *ContentSecurityHeader, error) { // 获取请求头中的X-Content-Security字段 contentSecurity := r.Header.Get(httpx.ContentSecurity) //X-Content-Security attrs := httpx.ParseHeader(contentSecurity) // 获取请求头中的X-Content-Security字段中的key、secret、signature字段 fingerprint := attrs[httpx.KeyField] //&amp;#34;key&amp;#34; secret := attrs[httpx.SecretField] //&amp;#34;secret&amp;#34; signature := attrs[signatureField] //&amp;#34;signatur&amp;#34; if len(fingerprint) == 0 || len(secret) == 0 || len(signature) == 0 { return nil, ErrInvalidHeader } decrypter, ok := decrypters[fingerprint] if !ok { return nil, ErrInvalidPublicKey } // 解密secret decryptedSecret, err := decrypter.</description><content type="html"><![CDATA[<h3 id="背景">背景</h3>

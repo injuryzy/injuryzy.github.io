@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Flutter on injuryzy 的博客</title><link>/tags/flutter/</link><description>Recent content in Flutter on injuryzy 的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 28 Jun 2024 11:42:05 +0800</lastBuildDate><atom:link href="/tags/flutter/index.xml" rel="self" type="application/rss+xml"/><item><title>Flutter的provider</title><link>/posts/2024/06/flutter%E7%9A%84provider/</link><pubDate>Fri, 28 Jun 2024 11:42:05 +0800</pubDate><guid>/posts/2024/06/flutter%E7%9A%84provider/</guid><description>背景 在类似 Flutter 的声明式框架中，如果你想要修改 UI，那么你需要重构它。所以数据要存储在widget树中的widget上层，
+缺点：
+容易出现bug 重新构建widget性能差 provider 幸运的是 Flutter 在 widget 中存在一种机制，能够为其子孙节点提供数据和服务。换言之，不仅仅是它的子节点，所有在它下层的 widget 都可以。
+ChangeNotifier ChangeNotifier 用于向监听器发送通知，如果定义为ChangeNotifier ,可以订阅他的变化 ，需要给改ui的时候可以调用 notifyListeners()方法；
+ChangeNotifierProvider ChangeNotifierProvider 放在需要监听的weiget 的上层，可以向其子孙节点暴露 ChangeNotifier
+Consumer CartModel 已经通过 ChangeNotifierProvider 在应用中与 widget 相关联
+##连接 flutter provider</description></item></channel></rss>

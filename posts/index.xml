@@ -1,4 +1,4 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on injuryzy 的博客</title><link>/posts/</link><description>Recent content in Posts on injuryzy 的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 28 Jun 2024 11:42:05 +0800</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Creating a New Theme</title><link>/posts/2014/09/creating-a-new-theme/</link><pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate><guid>/posts/2014/09/creating-a-new-theme/</guid><description>Introduction This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&amp;rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&amp;rsquo;t cover using CSS to style your theme.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on injuryzy 的博客</title><link>/posts/</link><description>Recent content in Posts on injuryzy 的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Wed, 11 Sep 2024 12:06:34 +0800</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Creating a New Theme</title><link>/posts/2014/09/creating-a-new-theme/</link><pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate><guid>/posts/2014/09/creating-a-new-theme/</guid><description>Introduction This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&amp;rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&amp;rsquo;t cover using CSS to style your theme.
 We&amp;rsquo;ll start with creating a new site with a very basic template.</description><content type="html"><![CDATA[<h2 id="introduction">Introduction</h2>
 <p>This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&rsquo;t cover using CSS to style your theme.</p>
 <p>We&rsquo;ll start with creating a new site with a very basic template. Then we&rsquo;ll add in a few pages and posts. With small variations on that, you will be able to create many different types of web sites.</p>
@@ -804,6 +804,187 @@ $ vi themes/zafta/layouts/_default/single.html
 </code></pre><p>Note that we removed the date logic from the default template and put it in the post template. Generate the web site and verify the results. Posts have dates and the about page doesn&rsquo;t.</p>
 <h3 id="dont-repeat-yourself">Don&rsquo;t Repeat Yourself</h3>
 <p>DRY is a good design goal and Hugo does a great job supporting it. Part of the art of a good template is knowing when to add a new template and when to update an existing one. While you&rsquo;re figuring that out, accept that you&rsquo;ll be doing some refactoring. Hugo makes that easy and fast, so it&rsquo;s okay to delay splitting up a template.</p>
+]]></content></item><item><title>go_zero+loki轻量日志收集系统</title><link>/posts/2024/09/go_zero-loki%E8%BD%BB%E9%87%8F%E6%97%A5%E5%BF%97%E6%94%B6%E9%9B%86%E7%B3%BB%E7%BB%9F/</link><pubDate>Wed, 11 Sep 2024 12:06:34 +0800</pubDate><guid>/posts/2024/09/go_zero-loki%E8%BD%BB%E9%87%8F%E6%97%A5%E5%BF%97%E6%94%B6%E9%9B%86%E7%B3%BB%E7%BB%9F/</guid><description>背景 由于系统上会有很多服务，每个服务都会产生日志，如果每个服务都单独收集日志，那么会非常麻烦，所以需要一套轻量级的日志收集系统。
+像elk这些日志收集系统我觉得都太笨重了，搭建起来很麻烦，所以选择loki作为日志收集系统，loki是一个开源的日志聚合系统，它使用了一种名为“日志流”的概念来处理日志数据，可以将日志数据存储在内存中，然后定期将数据持久化到磁盘上，loki的架构非常简单，只需要一个loki服务和一个grafana服务即可，loki服务负责接收日志数据，并将数据存储在内存中
+安装 这里我们采用docker 安装，我觉得docker真的超级好用，不用去搭建过多的环境 docker-compose.yaml 加了version 会报过时这个错误，还没有去查看具体的原因，不加是没有什么问题的
+这个yml 文件在官网也找的到，我只是做一个入门的介绍，具体可以参考官网
+networks: loki: services: loki: image: grafana/loki:2.9.2 ports: - &amp;#34;3100:3100&amp;#34; command: -config.file=/etc/loki/local-config.yaml networks: - loki promtail: image: grafana/promtail:2.9.2 volumes: - /var/log:/var/log command: -config.file=/etc/promtail/config.yml networks: - loki grafana: environment: - GF_PATHS_PROVISIONING=/etc/grafana/provisioning - GF_AUTH_ANONYMOUS_ENABLED=true - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin entrypoint: - sh - -euc - | mkdir -p /etc/grafana/provisioning/datasources cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/grafana/provisioning/datasources/ds.yaml apiVersion: 1 datasources: - name: Loki type: loki access: proxy orgId: 1 url: http://loki:3100 basicAuth: false isDefault: true version: 1 editable: false EOF /run.</description><content type="html"><![CDATA[<h2 id="背景">背景</h2>
+<blockquote>
+<p>由于系统上会有很多服务，每个服务都会产生日志，如果每个服务都单独收集日志，那么会非常麻烦，所以需要一套轻量级的日志收集系统。</p>
+</blockquote>
+<p>像elk这些日志收集系统我觉得都太笨重了，搭建起来很麻烦，所以选择loki作为日志收集系统，loki是一个开源的日志聚合系统，它使用了一种名为“日志流”的概念来处理日志数据，可以将日志数据存储在内存中，然后定期将数据持久化到磁盘上，loki的架构非常简单，只需要一个loki服务和一个grafana服务即可，loki服务负责接收日志数据，并将数据存储在内存中</p>
+<h2 id="安装">安装</h2>
+<p>这里我们采用docker 安装，我觉得docker真的超级好用，不用去搭建过多的环境
+docker-compose.yaml 加了version 会报过时这个错误，还没有去查看具体的原因，不加是没有什么问题的</p>
+<p>这个yml 文件在官网也找的到，我只是做一个入门的介绍，具体可以参考官网</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loki</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loki</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/loki:2.9.2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;3100:3100&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/loki/local-config.yaml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">loki</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">promtail</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/promtail:2.9.2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/var/log:/var/log</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/promtail/config.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">loki</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">grafana</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">GF_PATHS_PROVISIONING=/etc/grafana/provisioning</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">GF_AUTH_ANONYMOUS_ENABLED=true</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">GF_AUTH_ANONYMOUS_ORG_ROLE=Admin</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">entrypoint</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">sh</span>
+</span></span><span style="display:flex;"><span>      - -<span style="color:#ae81ff">euc</span>
+</span></span><span style="display:flex;"><span>      - |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        mkdir -p /etc/grafana/provisioning/datasources
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        cat &lt;&lt;EOF &gt; /etc/grafana/provisioning/datasources/ds.yaml
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        apiVersion: 1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        datasources:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        - name: Loki
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          type: loki
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          access: proxy 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          orgId: 1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          url: http://loki:3100
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          basicAuth: false
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          isDefault: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          version: 1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          editable: false
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        EOF
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        /run.sh</span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/grafana:latest</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;3000:3000&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">loki</span>
+</span></span></code></pre></div><p>先给大家上个效果图</p>
+<p>loki 内存占用
+<img src="/images/loki.png" alt="img.png"></p>
+<p>grafana 内存占用
+<img src="/images/grafana.png" alt="img.png"></p>
+<p>promtail 内存占用
+<img src="/images/promtail.png" alt="img.png"></p>
+<p>grafana 面板图
+<img src="/images/logs_app.png" alt="img.png"></p>
+<p>这样就能清晰的看我们的日志了</p>
+<h2 id="接入">接入</h2>
+<p>go_zero 接入</p>
+<p>幸好go_zero 的logx 有设置输入流的方法 logx.setWriter(writer)</p>
+<p>现在我们需要实现一个writer，将日志输出到loki</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">log</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/afiskon/promtail-client/promtail&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/zeromicro/go-zero/core/logx&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;log&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;os&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">loki</span> <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">register</span>(<span style="color:#a6e22e">url</span>, <span style="color:#a6e22e">source_name</span>, <span style="color:#a6e22e">job_name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">sendLevel</span>, <span style="color:#a6e22e">PrintLevel</span> <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">LogLevel</span>) <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">Client</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">labels</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;{source=\&#34;&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">source_name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\&#34;,job=\&#34;&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">job_name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\&#34;}&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">conf</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">ClientConfig</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">PushURL</span>:            <span style="color:#a6e22e">url</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/api/prom/push&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Labels</span>:             <span style="color:#a6e22e">labels</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">BatchWait</span>:          <span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">BatchEntriesNumber</span>: <span style="color:#ae81ff">10000</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">SendLevel</span>:          <span style="color:#a6e22e">sendLevel</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">PrintLevel</span>:         <span style="color:#a6e22e">PrintLevel</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">loki</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">NewClientProto</span>(<span style="color:#a6e22e">conf</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;promtail.NewClient: %s\n&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;loki up sucessfully!&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">loki</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">LogWrite</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 注册loki
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">loki</span> <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// NewLogWrite 创建日志写入器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// lokiUrl 地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// sourceName 源名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// jobName 任务名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// sendLevel 发送级别
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// PrintLevel 打印级别
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewLogWrite</span>(<span style="color:#a6e22e">lokiUrl</span>, <span style="color:#a6e22e">sourceName</span>, <span style="color:#a6e22e">jobName</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">sendLevel</span>, <span style="color:#a6e22e">PrintLevel</span> <span style="color:#a6e22e">promtail</span>.<span style="color:#a6e22e">LogLevel</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">LogWrite</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">loki</span>: <span style="color:#a6e22e">register</span>(<span style="color:#a6e22e">lokiUrl</span>, <span style="color:#a6e22e">sourceName</span>, <span style="color:#a6e22e">jobName</span>, <span style="color:#a6e22e">sendLevel</span>, <span style="color:#a6e22e">PrintLevel</span>),
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Alert</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Close</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Shutdown</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Debug</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>, <span style="color:#a6e22e">fields</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">logx</span>.<span style="color:#a6e22e">LogField</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">fields</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;err: %v, file:%s&#34;</span>, <span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">fields</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Value</span>)
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>, <span style="color:#a6e22e">fields</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">logx</span>.<span style="color:#a6e22e">LogField</span>) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">fields</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;err: %v, file:%s&#34;</span>, <span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">fields</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Value</span>)
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Info</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>, <span style="color:#a6e22e">fields</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">logx</span>.<span style="color:#a6e22e">LogField</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">fields</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;info: %v, file:%s&#34;</span>, <span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">fields</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Value</span>)
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;info: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Severe</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Slow</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>, <span style="color:#a6e22e">fields</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">logx</span>.<span style="color:#a6e22e">LogField</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">fields</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Warnf</span>(<span style="color:#e6db74">&#34;err: %v, file:%s&#34;</span>, <span style="color:#a6e22e">v</span>, <span style="color:#a6e22e">fields</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Value</span>)
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Warnf</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Stack</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">l</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">LogWrite</span>) <span style="color:#a6e22e">Stat</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">any</span>, <span style="color:#a6e22e">fields</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">logx</span>.<span style="color:#a6e22e">LogField</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">l</span>.<span style="color:#a6e22e">loki</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;err: %v&#34;</span>, <span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><img src="/images/set_writer.png" alt="img.png"></p>
+<p>一定要把setWriter 放在s.stop() 后面，不然输入流会关闭，无法生效</p>
 ]]></content></item><item><title>Flutter的provider</title><link>/posts/2024/06/flutter%E7%9A%84provider/</link><pubDate>Fri, 28 Jun 2024 11:42:05 +0800</pubDate><guid>/posts/2024/06/flutter%E7%9A%84provider/</guid><description>背景 在类似 Flutter 的声明式框架中，如果你想要修改 UI，那么你需要重构它。所以数据要存储在widget树中的widget上层，
 缺点：
 容易出现bug 重新构建widget性能差 provider 幸运的是 Flutter 在 widget 中存在一种机制，能够为其子孙节点提供数据和服务。换言之，不仅仅是它的子节点，所有在它下层的 widget 都可以。
